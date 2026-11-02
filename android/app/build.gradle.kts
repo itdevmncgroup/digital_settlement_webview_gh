@@ -1,9 +1,26 @@
+import java.net.URI
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Host of the web app, taken from the same `--dart-define=APP_URL=...` lib/main.dart reads (and the
+// same default), so the App Link intent-filter in AndroidManifest.xml always matches the loaded site.
+val defaultAppUrl = "https://earlobe-neutron-pushchair.ngrok-free.dev"
+val dartDefines: Map<String, String> =
+    (project.findProperty("dart-defines") as String?)
+        ?.split(",")
+        ?.filter { it.isNotBlank() }
+        ?.associate {
+            val pair = String(Base64.getDecoder().decode(it)).split("=", limit = 2)
+            pair[0] to pair.getOrElse(1) { "" }
+        }
+        ?: emptyMap()
+val appLinkHost: String = URI(dartDefines["APP_URL"] ?: defaultAppUrl).host
 
 android {
     namespace = "com.mncgroup.digital_settlement_webview"
@@ -28,6 +45,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["appLinkHost"] = appLinkHost
     }
 
     buildTypes {

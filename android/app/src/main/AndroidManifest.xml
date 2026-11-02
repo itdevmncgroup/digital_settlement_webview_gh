@@ -25,9 +25,22 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- Links are handled by app_links (lib/main.dart), not by Flutter's own route-based deep linking. -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false"/>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Android App Link: an https://<APP_URL host>/m/... link (the "Open Settlement (Mobile
+                 Mode)" button in approval emails) opens this app instead of the browser. autoVerify only
+                 takes effect when https://<host>/.well-known/assetlinks.json (served by digital_settlement_fe)
+                 lists this app's package + signing cert; otherwise Android keeps opening it in the browser.
+                 The host is APP_URL's host, filled in by app/build.gradle.kts. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="${appLinkHost}" android:pathPrefix="/m/"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
